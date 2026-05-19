@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/hit_point.dart';
 import '../models/cue.dart';
 import '../models/segment_result.dart';
@@ -51,6 +52,9 @@ class _HomePageState extends State<HomePage> {
                     controller: fpsController,
                     decoration: const InputDecoration(labelText: 'FPS'),
                     keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'),),
+                    ],
                   ),
           
                   const SizedBox(height: 10),
@@ -86,6 +90,7 @@ class _HomePageState extends State<HomePage> {
                                         MainAxisAlignment.spaceBetween,
 
                                     children: [
+                                      //INFO DEL CUE
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
@@ -102,6 +107,21 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                         ],
                                       ),
+
+                                      // BOTON ELIMINAR CUE
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
+
+                                        onPressed: () {
+                                          setState(() {
+                                            cues.removeAt(cueIndex);
+                                            results.clear();
+                                          });
+                                        },
+                                      )  
                                     ],
                                   ),
                                 ),
@@ -236,7 +256,7 @@ class _HomePageState extends State<HomePage> {
                           "${result.frameDistance} frames\n"
                           "${result.seconds.toStringAsFixed(2)} segundos\n"
                           "BPM óptimo: ${result.bestBpm.toStringAsFixed(1)}\n"
-                          "${result.totalBars.toStringAsFixed(2)} compases\n"
+                          "Compás ${result.barNumber} • Beat ${result.beatInBar}\n"
                           "Error: ${result.frameError.toStringAsFixed(2)} frames",
                         ),
                       ),
@@ -399,6 +419,10 @@ class _HomePageState extends State<HomePage> {
         text: cue.bpmMax.toString(),
       );
 
+    final beatsPerBarController =
+      TextEditingController(
+        text: cue.beatsPerBar.toString(),
+      );
 
     showDialog(
       context: context,
@@ -422,7 +446,10 @@ class _HomePageState extends State<HomePage> {
                     labelText: "BPM Mínimo",
                   ),
                   keyboardType:
-                      TextInputType.numberWithOptions(decimal: true),
+                    TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'),),
+                  ],
                 ),
 
                 TextField(
@@ -431,7 +458,25 @@ class _HomePageState extends State<HomePage> {
                     labelText: "BPM Máximo",
                   ),
                   keyboardType:
-                      TextInputType.numberWithOptions(decimal: true),
+                    TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'),),
+                  ],
+                ),
+
+                TextField(
+                  controller: beatsPerBarController,
+
+                  decoration: const InputDecoration(
+                    labelText: "Beats por compás",
+                  ),
+
+                  keyboardType:
+                      TextInputType.number,
+
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                 ),
               ],
             ),
@@ -458,6 +503,12 @@ class _HomePageState extends State<HomePage> {
                       bpmMaxController.text,
                     ) ??
                     120;
+                
+                cue.beatsPerBar =
+                  int.tryParse(
+                    beatsPerBarController.text,
+                  ) ??
+                  4;
                 });
 
                 Navigator.pop(context);

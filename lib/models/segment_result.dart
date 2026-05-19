@@ -8,8 +8,9 @@ class SegmentResult {
   double totalBars;
   double frameError;
   String status;
-  int barNumber;
-  int beatInBar;
+  final int barNumber;
+  final int beatInBar;
+
 
   SegmentResult({
     required this.startName,
