@@ -1,28 +1,31 @@
 class SegmentResult {
-  String startName;
-  String endName;
-  int frameDistance;
-  double seconds;
-  double bestBpm;
-  double totalBeats;
-  double totalBars;
-  double frameError;
-  String status;
-  final int barNumber;
-  final int beatInBar;
 
+  final String hitName;
+  final String smpte;
+
+  final String cueName;
+
+  final int bar;
+  final int beat;
+  final int subdivision;
+
+  final double frameError;
+  final double millisecondsError;
+
+  final String status;
 
   SegmentResult({
-    required this.startName,
-    required this.endName,
-    required this.frameDistance,
-    required this.seconds,
-    required this.bestBpm,
-    required this.totalBars,
-    required this.totalBeats,
+    required this.hitName,
+    required this.smpte,
+    required this.cueName,
+
+    required this.bar,
+    required this.beat,
+    required this.subdivision,
+
     required this.frameError,
+    required this.millisecondsError,
+
     required this.status,
-    required this.barNumber,
-    required this.beatInBar,
   });
 }

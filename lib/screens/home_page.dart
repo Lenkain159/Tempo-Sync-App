@@ -219,50 +219,124 @@ class _HomePageState extends State<HomePage> {
             // PANEL DERECHO (RESULTADOS - vacío por ahora)
             Expanded(
               flex: 3,
-              child: Container(
-                color: Colors.grey.shade200,
-                child: ListView.builder(
-                  itemCount: results.length,
+              child: ListView(
+                children: [
 
-                  itemBuilder: (context, index) {
-                    final result = results[index];
+                  // BPM ÓPTIMO
+                  for (var cue in cues) ...[
+                    Padding(
+                      padding: const EdgeInsets.all(12),
 
-                  Color cardColor;
-
-                  switch (result.status) {
-
-                    case "OK":
-                      cardColor = Colors.green.shade100;
-                      break;
-
-                    case "LEVE":
-                      cardColor = Colors.yellow.shade100;
-                      break;
-
-                    default:
-                      cardColor = Colors.red.shade100;
-                  }
-
-                    return Card(
-                      color: cardColor,
-                      margin: const EdgeInsets.all(8),
-
-                      child: ListTile(
-                        title: Text(
-                          "${result.startName} → ${result.endName}",
-                        ),
-
-                        subtitle: Text(
-                          "${result.frameDistance} frames\n"
-                          "${result.seconds.toStringAsFixed(2)} segundos\n"
-                          "BPM óptimo: ${result.bestBpm.toStringAsFixed(1)}\n"
-                          "Compás ${result.barNumber} • Beat ${result.beatInBar}\n"
-                          "Error: ${result.frameError.toStringAsFixed(2)} frames",
+                      child: Text(
+                        "${cue.name} → BPM óptimo: ${cue.optimalBpm.toStringAsFixed(0)}",
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+
+                      child: DataTable(
+
+                        columns: const [
+
+                          DataColumn(
+                            label: Text("Hit Point"),
+                          ),
+
+                          DataColumn(
+                            label: Text("SMPTE"),
+                          ),
+
+                          DataColumn(
+                            label: Text("Compás"),
+                          ),
+
+                          DataColumn(
+                            label: Text("Beat"),
+                          ),
+
+                          DataColumn(
+                            label: Text("Subdivisión"),
+                          ),
+
+                          DataColumn(
+                            label: Text("Frames"),
+                          ),
+
+                          DataColumn(
+                            label: Text("Milisegundos (ms)"),
+                          ),
+                        ],
+
+                        rows: results
+                            .where((r) => r.cueName == cue.name)
+                            .map((result) {
+
+                          Color rowColor;
+
+                          switch (result.status) {
+
+                            case "OK":
+                              rowColor = Colors.green.shade100;
+                              break;
+
+                            case "LEVE":
+                              rowColor = Colors.yellow.shade100;
+                              break;
+
+                            default:
+                              rowColor = Colors.red.shade100;
+                          }
+
+                          return DataRow(
+                            color: WidgetStatePropertyAll(rowColor),
+
+                            cells: [
+
+                              DataCell(
+                                Text(result.hitName),
+                              ),
+
+                              DataCell(
+                                Text(result.smpte),
+                              ),
+
+                              DataCell(
+                                Text(result.bar.toString()),
+                              ),
+
+                              DataCell(
+                                Text(result.beat.toString()),
+                              ),
+
+                              DataCell(
+                                Text(result.subdivision.toString()),
+                              ),
+                              
+                              DataCell(
+                                Text(
+                                  "${result.frameError >= 0 ? "+" : ""}${result.frameError.toStringAsFixed(2)}",
+                                ),
+                              ),
+
+                              DataCell(
+                                Text(
+                                  "${result.millisecondsError >= 0 ? "+" : ""}${result.millisecondsError.toStringAsFixed(2)}",
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+                  ],
+                ],
               ),
             ),
           ],
@@ -424,6 +498,11 @@ class _HomePageState extends State<HomePage> {
         text: cue.beatsPerBar.toString(),
       );
 
+    final subdivisionController =
+      TextEditingController(
+        text: cue.subdivision.toString(),
+      );
+      
     showDialog(
       context: context,
       builder: (context) {
@@ -478,6 +557,17 @@ class _HomePageState extends State<HomePage> {
                     FilteringTextInputFormatter.digitsOnly,
                   ],
                 ),
+                
+                TextField(
+                  controller: subdivisionController,
+                  decoration: const InputDecoration(
+                    labelText: "Subdivisión",
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                ),
               ],
             ),
           ),
@@ -509,6 +599,11 @@ class _HomePageState extends State<HomePage> {
                     beatsPerBarController.text,
                   ) ??
                   4;
+                cue.subdivision =
+                  int.tryParse(
+                    subdivisionController.text,
+                  ) ??
+                  1;
                 });
 
                 Navigator.pop(context);
@@ -632,31 +727,45 @@ class _HomePageState extends State<HomePage> {
         double totalBeats =
             1 + (seconds / beatDuration);
 
-        double nearestBeat =
-            totalBeats.roundToDouble();
+        double nearestSubdivision =
+          (totalBeats * cue.subdivision)
+              .roundToDouble() /
+          cue.subdivision;
 
         int barNumber =
-          ((nearestBeat - 1) ~/ cue.beatsPerBar) + 1;
+          ((nearestSubdivision - 1) ~/ cue.beatsPerBar) + 1;
 
         int beatInBar =
-          ((nearestBeat - 1).toInt() % cue.beatsPerBar) + 1;
+          ((nearestSubdivision - 1).toInt() % cue.beatsPerBar) + 1;
+
+        double fractional =
+          nearestSubdivision -
+          nearestSubdivision.floor();
+
+        int subdivisionNumber =
+            (fractional * cue.subdivision)
+                .round() + 1;
+
+        if (subdivisionNumber > cue.subdivision) {
+          subdivisionNumber = 1;
+        }
 
         //Error
-        double errorBeats =
-            (totalBeats - nearestBeat).abs();
+        double beatOffset =
+          totalBeats - nearestSubdivision;
 
         double errorSeconds =
-            errorBeats * beatDuration;
+            beatOffset * beatDuration;
 
         double errorFrames =
             errorSeconds * fps;
 
         String status;
 
-        if (errorFrames <= 3) {
+        if (errorFrames.abs() <= 3) {
           status = "OK";
         }
-        else if (errorFrames <= 6) {
+        else if (errorFrames.abs() <= 6) {
           status = "LEVE";
         }
         else {
@@ -665,22 +774,17 @@ class _HomePageState extends State<HomePage> {
 
         results.add(
           SegmentResult(
-            startName: firstHit.name,
-            endName: hp.name,
+            hitName: hp.name,
+            smpte: hp.time,
 
-            frameDistance: hpFrames - firstFrames,
-            seconds: seconds,
-
-            bestBpm: cue.optimalBpm,
-
-            totalBeats: totalBeats,
-            totalBars: barNumber.toDouble(),
-
+            cueName: cue.name,
+            bar: barNumber,
+            beat: beatInBar,
+            subdivision: subdivisionNumber,
             frameError: errorFrames,
-            status: status,
+            millisecondsError: errorSeconds * 1000,
 
-            barNumber: barNumber,
-            beatInBar: beatInBar,
+            status: status,
           ),
         );
       }
