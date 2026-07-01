@@ -260,7 +260,7 @@ class _HomePageState extends State<HomePage> {
                           ),
 
                           DataColumn(
-                            label: Text("Subdivisión del beat"),
+                            label: Text("División del beat"),
                           ),
 
                           DataColumn(
@@ -394,7 +394,7 @@ class _HomePageState extends State<HomePage> {
                             });
                           },
                         ),
-                        const Text("Cambio subdivisión"),
+                        const Text("Cambio de división"),
                       ],
                     ),
 
