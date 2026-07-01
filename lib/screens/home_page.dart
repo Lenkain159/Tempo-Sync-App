@@ -260,7 +260,7 @@ class _HomePageState extends State<HomePage> {
                           ),
 
                           DataColumn(
-                            label: Text("Subdivisión"),
+                            label: Text("Subdivisión del beat"),
                           ),
 
                           DataColumn(
@@ -561,7 +561,7 @@ class _HomePageState extends State<HomePage> {
                 TextField(
                   controller: subdivisionController,
                   decoration: const InputDecoration(
-                    labelText: "Subdivisión",
+                    labelText: "División del beat (para hit points)",
                   ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [
