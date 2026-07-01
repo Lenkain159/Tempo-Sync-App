@@ -27,7 +27,7 @@ jobs:
 
       - run: flutter pub get
 
-      - run: flutter build web --release --base-href "/Tempo_Sync_App/"
+      - run: flutter build web --release --base-href "/Tempo-Sync-App/"
 
       - uses: actions/upload-pages-artifact@v3
         with:
