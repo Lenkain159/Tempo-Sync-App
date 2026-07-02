@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/hit_point.dart';
 import '../models/cue.dart';
 import '../models/segment_result.dart';
+import '../models/note_value.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,9 +24,9 @@ class _HomePageState extends State<HomePage> {
           name: "Cue ${cues.length + 1}",
           bpmMin: 80,
           bpmMax: 120,
-          beatValue: 4,
+          beat: noteValues[2], // Negra
           beatsPerBar: 4,
-          subdivision: 2,
+          subdivision: noteValues[3], // Corchea
           hitPoints: [],
         ),
       );
@@ -351,11 +352,6 @@ class _HomePageState extends State<HomePage> {
 
     final nameController = TextEditingController(text: hp.name);
     final timeController = TextEditingController(text: hp.time);
-    final subdivisionController = TextEditingController(
-      text: hp.subdivision?.toString() ?? "",
-    );
-
-    bool hasSubdivisionChange = hp.hasSubdivisionChange;
 
     showDialog(
       context: context,
@@ -383,35 +379,12 @@ class _HomePageState extends State<HomePage> {
                     ),
 
                     const SizedBox(height: 10),
-                    // CAMBIO SUBDIVISIÓN
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: hasSubdivisionChange,
-                          onChanged: (value) {
-                            setStateDialog(() {
-                              hasSubdivisionChange = value!;
-                            });
-                          },
-                        ),
-                        const Text("Cambio de división"),
-                      ],
-                    ),
-
-                    if (hasSubdivisionChange)
-                      TextField(
-                        controller: subdivisionController,
-                        decoration: const InputDecoration(
-                          labelText:
-                              "Subdivisión",
-                        ),
-                        keyboardType: TextInputType.numberWithOptions(decimal: false),
-                      ),
                   ],
                 ),
               );
             },
           ),
+
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -423,16 +396,6 @@ class _HomePageState extends State<HomePage> {
                 setState(() {
                   hp.name = nameController.text;
                   hp.time = timeController.text;
-                  hp.hasSubdivisionChange =
-                      hasSubdivisionChange;
-           
-                  // SUBDIVISIÓN
-                  if (hasSubdivisionChange) {
-                    hp.subdivision = int.tryParse(subdivisionController.text);
-                  } else {
-                    hp.subdivision = null;
-                  }
-
                   sortHitPoints(cues[cueIndex]);
                 });
 
@@ -498,78 +461,110 @@ class _HomePageState extends State<HomePage> {
         text: cue.beatsPerBar.toString(),
       );
 
-    final subdivisionController =
-      TextEditingController(
-        text: cue.subdivision.toString(),
-      );
-      
+    NoteValue selectedBeat = cue.beat;
+
+    NoteValue selectedSubdivision = cue.subdivision;
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text("Editar Cue"),
+          content: StatefulBuilder(
+            builder: (context, setStateDialog) {
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(
+                        labelText: "Nombre del Cue",
+                      ),
+                    ),
 
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: "Nombre del Cue",
-                  ),
-                ),
+                    DropdownButtonFormField<NoteValue>(
+                      initialValue: selectedBeat,
+                      decoration: const InputDecoration(
+                        labelText: "Figura del beat",
+                      ),
+                      items: noteValues.map((note){
+                        return DropdownMenuItem(
+                          value: note,
+                          child: Text(note.name),
+                        );
+                      }).toList(),
 
-                TextField(
-                  controller: bpmMinController,
-                  decoration: const InputDecoration(
-                    labelText: "BPM Mínimo",
-                  ),
-                  keyboardType:
-                    TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'),),
-                  ],
-                ),
+                      onChanged: (value){
+                        setStateDialog((){
+                          selectedBeat = value!;
+                          if (selectedSubdivision.value >= selectedBeat.value) {
+                            selectedSubdivision = noteValues.firstWhere(
+                              (note) => note.value < selectedBeat.value,
+                            );
+                          }
+                        });
+                      },
+                    ),
 
-                TextField(
-                  controller: bpmMaxController,
-                  decoration: const InputDecoration(
-                    labelText: "BPM Máximo",
-                  ),
-                  keyboardType:
-                    TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'),),
-                  ],
-                ),
+                    TextField(
+                      controller: bpmMinController,
+                      decoration: const InputDecoration(
+                        labelText: "BPM Mínimo",
+                      ),
+                      keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'),),
+                      ],
+                    ),
 
-                TextField(
-                  controller: beatsPerBarController,
+                    TextField(
+                      controller: bpmMaxController,
+                      decoration: const InputDecoration(
+                        labelText: "BPM Máximo",
+                      ),
+                      keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'),),
+                      ],
+                    ),
 
-                  decoration: const InputDecoration(
-                    labelText: "Beats por compás",
-                  ),
-
-                  keyboardType:
+                    TextField(
+                      controller: beatsPerBarController,
+                      decoration: const InputDecoration(
+                       labelText: "Beats por compás",
+                      ),
+                      keyboardType:
                       TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                    ),
 
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
+                    DropdownButtonFormField<NoteValue>(
+                      initialValue: selectedSubdivision,
+                      decoration: const InputDecoration(
+                        labelText: "Subdivisión",
+                      ),
+                      items: noteValues
+                        .where((note) => note.value < selectedBeat.value)
+                        .map((note){
+                          return DropdownMenuItem(
+                            value: note,
+                            child: Text(note.name),
+                          );
+                        }).toList(),
+                      onChanged: (value){
+                        setStateDialog((){
+                          selectedSubdivision = value!;
+                        });
+                      },
+                    ),
                   ],
                 ),
-                
-                TextField(
-                  controller: subdivisionController,
-                  decoration: const InputDecoration(
-                    labelText: "División del beat (para hit points)",
-                  ),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
-                ),
-              ],
-            ),
+              );
+            },
           ),
 
           actions: [
@@ -582,36 +577,35 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 setState(() {
                   cue.name = nameController.text;
+
+                  cue.beat = selectedBeat;
+
                   cue.bpmMin =
                     double.tryParse(
                       bpmMinController.text,
                     ) ??
                     80;
 
-                cue.bpmMax =
+                  cue.bpmMax =
                     double.tryParse(
                       bpmMaxController.text,
                     ) ??
                     120;
-                
-                cue.beatsPerBar =
-                  int.tryParse(
-                    beatsPerBarController.text,
-                  ) ??
-                  4;
-                cue.subdivision =
-                  int.tryParse(
-                    subdivisionController.text,
-                  ) ??
-                  1;
-                });
 
+                  cue.beatsPerBar =
+                    int.tryParse(
+                      beatsPerBarController.text,
+                    ) ??
+                    4;
+
+                  cue.subdivision = selectedSubdivision;
+                });
                 Navigator.pop(context);
               },
               child: const Text("Guardar"),
             ),
           ],
-        );
+        );  
       },
     );
   }
@@ -685,29 +679,23 @@ class _HomePageState extends State<HomePage> {
   void calculateSegments() {
 
     results.clear();
-
     double fps =
         double.tryParse(fpsController.text) ?? 24.0;
-
     for (var cue in cues) {
-
       // calcular BPM global del cue
       calculateCueBpm(cue);
-
       double bpm = cue.optimalBpm;
-
       double beatDuration =
           60 / bpm;
-
       for (
         int i = 0;
         i < cue.hitPoints.length;
         i++
-      ) {
-        
+      ) 
+      {        
         final firstHit = cue.hitPoints.first;
         final hp = cue.hitPoints[i];
-
+        
         int firstFrames =
             smpteToFrames(firstHit.time, fps);
 
@@ -727,26 +715,35 @@ class _HomePageState extends State<HomePage> {
         double totalBeats =
             1 + (seconds / beatDuration);
 
-        double nearestSubdivision =
-          (totalBeats * cue.subdivision)
-              .roundToDouble() /
-          cue.subdivision;
+        double subdivisionsPerBeat =
+          cue.beat.value /
+          cue.subdivision.value;
 
+        double nearestSubdivision =
+          (totalBeats * subdivisionsPerBeat)
+              .roundToDouble() /
+          subdivisionsPerBeat;
+
+        int nearestBeat = nearestSubdivision.floor();
+        
         int barNumber =
-          ((nearestSubdivision - 1) ~/ cue.beatsPerBar) + 1;
+          ((nearestBeat - 1) ~/ cue.beatsPerBar) + 1;
 
         int beatInBar =
-          ((nearestSubdivision - 1).toInt() % cue.beatsPerBar) + 1;
+          ((nearestBeat - 1) % cue.beatsPerBar) + 1;
 
         double fractional =
           nearestSubdivision -
           nearestSubdivision.floor();
 
-        int subdivisionNumber =
-            (fractional * cue.subdivision)
-                .round() + 1;
+        int subdivisionsPerBeatInt =
+          (cue.beat.value / cue.subdivision.value).round();
 
-        if (subdivisionNumber > cue.subdivision) {
+        int subdivisionNumber =
+            (fractional * subdivisionsPerBeatInt)
+                .floor() + 1;
+
+        if (subdivisionNumber > subdivisionsPerBeatInt) {
           subdivisionNumber = 1;
         }
 

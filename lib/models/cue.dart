@@ -1,13 +1,14 @@
 import 'hit_point.dart';
+import 'note_value.dart';
 
 class Cue {
   String name;
   double bpmMin;
   double bpmMax;
   double optimalBpm;
-  int beatValue; // negra, corchea, etc
+  NoteValue beat; // negra, corchea, etc
   int beatsPerBar;
-  int subdivision;
+  NoteValue subdivision;
   
 
   List<HitPoint> hitPoints;
@@ -17,7 +18,7 @@ class Cue {
     required this.bpmMin,
     required this.bpmMax,
     this.optimalBpm = 120,
-    required this.beatValue,
+    required this.beat,
     required this.beatsPerBar,
     required this.subdivision,
     required this.hitPoints,
