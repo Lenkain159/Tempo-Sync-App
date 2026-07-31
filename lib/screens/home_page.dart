@@ -229,7 +229,7 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.all(12),
 
                       child: Text(
-                        "${cue.name} → BPM óptimo: ${cue.optimalBpm.toStringAsFixed(0)}",
+                        "${cue.name} → ${cue.beat.name} = ${cue.optimalBpm.toStringAsFixed(0)} BPM",
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -242,7 +242,7 @@ class _HomePageState extends State<HomePage> {
 
                       child: DataTable(
 
-                        columns: const [
+                        columns: [
 
                           DataColumn(
                             label: Text("Hit Point"),
@@ -257,11 +257,11 @@ class _HomePageState extends State<HomePage> {
                           ),
 
                           DataColumn(
-                            label: Text("Beat"),
+                            label: Text(cue.beat.name),
                           ),
 
                           DataColumn(
-                            label: Text("División del beat"),
+                            label: Text(cue.subdivision.name),
                           ),
 
                           DataColumn(
