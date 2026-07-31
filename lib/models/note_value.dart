@@ -19,11 +19,23 @@ const noteValues = [
   ),
 
   NoteValue(
+    name: "Blanca con puntillo",
+    value: 0.75,
+    image: "assets/notes/dotted_half.png",
+  ),
+
+  NoteValue(
     name: "Blanca",
     value: 0.5,
     image: "assets/notes/half.png",
   ),
 
+  NoteValue(
+    name: "Negra con puntillo",
+    value: 0.375,
+    image: "assets/notes/dotted_quarter.png",
+  ),
+  
   NoteValue(
     name: "Negra",
     value: 0.25,

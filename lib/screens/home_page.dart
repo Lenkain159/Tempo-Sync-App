@@ -24,13 +24,33 @@ class _HomePageState extends State<HomePage> {
           name: "Cue ${cues.length + 1}",
           bpmMin: 80,
           bpmMax: 120,
-          beat: noteValues[2], // Negra
+          beat: noteValues[4], // Negra
           beatsPerBar: 4,
-          subdivision: noteValues[3], // Corchea
+          subdivision: noteValues[5], // Corchea
           hitPoints: [],
         ),
       );
     });
+  }
+
+  bool isValidSubdivision(
+    NoteValue beat,
+    NoteValue subdivision,
+  ) {
+    if (subdivision.value >= beat.value) {
+      return false;
+    }
+
+    // Excepcion musical
+    // Blanca con puntillo no permite negras con puntillo
+    if (beat.name == "Blanca con puntillo" &&
+        subdivision.name == "Negra con puntillo") {
+      return false;
+    }
+
+    double ratio = beat.value / subdivision.value;
+
+    return (ratio - ratio.round()).abs() < 0.0001;
   }
 
   List<SegmentResult> results = [];
@@ -57,9 +77,9 @@ class _HomePageState extends State<HomePage> {
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'),),
                     ],
                   ),
-          
-                  const SizedBox(height: 10),
 
+                  const SizedBox(height: 10),
+                  
                   ElevatedButton(
                     onPressed: addCue,
                     child: const Text("Añadir Cue"),
@@ -226,14 +246,35 @@ class _HomePageState extends State<HomePage> {
                   // BPM ÓPTIMO
                   for (var cue in cues) ...[
                     Padding(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: [
+                          Text(
+                            cue.name,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
 
-                      child: Text(
-                        "${cue.name} → ${cue.beat.name} = ${cue.optimalBpm.toStringAsFixed(0)} BPM",
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                          const SizedBox(width: 20),
+
+                          Image.asset(
+                            cue.beat.image,
+                            width: 32,
+                            height: 32,
+                          ),
+
+                          const SizedBox(width: 8),
+
+                          Text(
+                            "= ${cue.optimalBpm.toStringAsFixed(0)} BPM",
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        ],
                       ),
                     ),
 
@@ -257,11 +298,29 @@ class _HomePageState extends State<HomePage> {
                           ),
 
                           DataColumn(
-                            label: Text(cue.beat.name),
+                            label: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Image.asset(
+                                  cue.beat.image,
+                                  width: 22,
+                                ),
+                                Text(cue.beat.name),
+                              ],
+                            ),
                           ),
 
                           DataColumn(
-                            label: Text(cue.subdivision.name),
+                            label: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Image.asset(
+                                  cue.subdivision.image,
+                                  width: 22,
+                                ),
+                                Text(cue.subdivision.name),
+                              ],
+                            ),
                           ),
 
                           DataColumn(
@@ -465,6 +524,12 @@ class _HomePageState extends State<HomePage> {
 
     NoteValue selectedSubdivision = cue.subdivision;
 
+    if (!isValidSubdivision(selectedBeat, selectedSubdivision)) {
+      selectedSubdivision = noteValues.firstWhere(
+        (note) => isValidSubdivision(selectedBeat, note),
+      );
+    }
+
     showDialog(
       context: context,
       builder: (context) {
@@ -490,16 +555,26 @@ class _HomePageState extends State<HomePage> {
                       items: noteValues.map((note){
                         return DropdownMenuItem(
                           value: note,
-                          child: Text(note.name),
+                          child: Row(
+                            children: [
+                              Image.asset(
+                                note.image,
+                                width: 22,
+                                height: 22,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(note.name),
+                            ],
+                          )
                         );
                       }).toList(),
 
                       onChanged: (value){
                         setStateDialog((){
                           selectedBeat = value!;
-                          if (selectedSubdivision.value >= selectedBeat.value) {
+                          if (!isValidSubdivision(selectedBeat, selectedSubdivision)) {
                             selectedSubdivision = noteValues.firstWhere(
-                              (note) => note.value < selectedBeat.value,
+                              (note) => isValidSubdivision(selectedBeat, note),
                             );
                           }
                         });
@@ -548,11 +623,21 @@ class _HomePageState extends State<HomePage> {
                         labelText: "Subdivisión",
                       ),
                       items: noteValues
-                        .where((note) => note.value < selectedBeat.value)
+                        .where((note) => isValidSubdivision(selectedBeat, note))
                         .map((note){
                           return DropdownMenuItem(
                             value: note,
-                            child: Text(note.name),
+                            child: Row(
+                              children: [
+                                Image.asset(
+                                  note.image,
+                                  width: 22,
+                                  height: 22,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(note.name),
+                              ],
+                            )
                           );
                         }).toList(),
                       onChanged: (value){
