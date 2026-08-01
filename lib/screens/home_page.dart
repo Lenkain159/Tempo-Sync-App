@@ -240,165 +240,209 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(width: 16),
 
-            // PANEL DERECHO (RESULTADOS - vacío por ahora)
+            // PANEL DERECHO (RESULTADOS)
             Expanded(
               flex: 3,
               child: ListView(
                 children: [
 
                   // BPM ÓPTIMO
-                  for (var cue in cues) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        children: [
-                          Text(
-                            cue.name,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
+                  for (final cue in cues) ...(() {
+
+                    final cueSegments = buildSegments(cue);
+
+                    return [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(
+                          children: [
+                            Text(
+                              cue.name,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
 
-                          const SizedBox(width: 20),
+                            const SizedBox(width: 20),
 
-                          Image.asset(
-                            cue.beat.image,
-                            width: 32,
-                            height: 32,
-                          ),
-
-                          const SizedBox(width: 8),
-
-                          Text(
-                            "= ${cue.optimalBpm.toStringAsFixed(0)} BPM",
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
+                            Image.asset(
+                              cue.beat.image,
+                              width: 32,
+                              height: 32,
                             ),
-                          )
-                        ],
+
+                            const SizedBox(width: 8),
+
+                            Text(
+                              "= ${cue.optimalBpm.toStringAsFixed(0)} BPM",
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
 
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
+                      for (int segmentIndex = 0; segmentIndex < cueSegments.length; segmentIndex++) ...(() {
 
-                      child: DataTable(
+                        final segment = cueSegments[segmentIndex];
 
-                        columns: [
+                        return [
 
-                          DataColumn(
-                            label: Text("Hit Point"),
-                          ),
-
-                          DataColumn(
-                            label: Text("SMPTE"),
-                          ),
-
-                          DataColumn(
-                            label: Text("Compás"),
-                          ),
-
-                          DataColumn(
-                            label: Column(
-                              mainAxisSize: MainAxisSize.min,
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+                            child: Row(
                               children: [
+
                                 Image.asset(
-                                  cue.beat.image,
-                                  width: 22,
+                                  segment.beat.image,
+                                  width: 26,
                                 ),
-                                Text(cue.beat.name),
+
+                                const SizedBox(width: 8),
+
+                                Text(
+                                  "= ${segment.bpm.toStringAsFixed(0)} BPM",
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+
+                                const SizedBox(width: 20),
+
+                                Text(
+                                  "${segment.beatsPerBar}/${(1 / segment.beat.value).round()}",
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
 
-                          DataColumn(
-                            label: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Image.asset(
-                                  cue.subdivision.image,
-                                  width: 22,
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+
+                            child: DataTable(
+
+                              columns: [
+
+                                DataColumn(
+                                  label: Text("Hit Point"),
                                 ),
-                                Text(cue.subdivision.name),
+
+                                DataColumn(
+                                  label: Text("SMPTE"),
+                                ),
+
+                                DataColumn(
+                                  label: Text("Compás"),
+                                ),
+
+                                DataColumn(
+                                  label: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Image.asset(
+                                        segment.beat.image,
+                                        width: 22,
+                                      ),
+                                      Text(segment.beat.name),
+                                    ],
+                                  ),
+                                ),
+
+                                DataColumn(
+                                  label: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Image.asset(
+                                        segment.subdivision.image,
+                                        width: 22,
+                                      ),
+                                      Text(segment.subdivision.name),
+                                    ],
+                                  ),
+                                ),
+
+                                DataColumn(
+                                  label: Text("Frames"),
+                                ),
+
+                                DataColumn(
+                                  label: Text("Milisegundos (ms)"),
+                                ),
                               ],
+
+                              rows: results
+                                  .where((r) => r.cueName == cue.name && r.segmentIndex == segmentIndex)
+                                  .map((result) {
+
+                                Color rowColor;
+
+                                switch (result.status) {
+
+                                  case "OK":
+                                    rowColor = Colors.green.shade100;
+                                    break;
+
+                                  case "LEVE":
+                                    rowColor = Colors.yellow.shade100;
+                                    break;
+
+                                  default:
+                                    rowColor = Colors.red.shade100;
+                                }
+
+                                return DataRow(
+                                  color: WidgetStatePropertyAll(rowColor),
+
+                                  cells: [
+
+                                    DataCell(
+                                      Text(result.hitName),
+                                    ),
+
+                                    DataCell(
+                                      Text(result.smpte),
+                                    ),
+
+                                    DataCell(
+                                      Text(result.bar.toString()),
+                                    ),
+
+                                    DataCell(
+                                      Text(result.beat.toString()),
+                                    ),
+
+                                    DataCell(
+                                      Text(result.subdivision.toString()),
+                                    ),
+                                    
+                                    DataCell(
+                                      Text(
+                                        "${result.frameError >= 0 ? "+" : ""}${result.frameError.toStringAsFixed(2)}",
+                                      ),
+                                    ),
+
+                                    DataCell(
+                                      Text(
+                                        "${result.millisecondsError >= 0 ? "+" : ""}${result.millisecondsError.toStringAsFixed(2)}",
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
                             ),
                           ),
-
-                          DataColumn(
-                            label: Text("Frames"),
-                          ),
-
-                          DataColumn(
-                            label: Text("Milisegundos (ms)"),
-                          ),
-                        ],
-
-                        rows: results
-                            .where((r) => r.cueName == cue.name)
-                            .map((result) {
-
-                          Color rowColor;
-
-                          switch (result.status) {
-
-                            case "OK":
-                              rowColor = Colors.green.shade100;
-                              break;
-
-                            case "LEVE":
-                              rowColor = Colors.yellow.shade100;
-                              break;
-
-                            default:
-                              rowColor = Colors.red.shade100;
-                          }
-
-                          return DataRow(
-                            color: WidgetStatePropertyAll(rowColor),
-
-                            cells: [
-
-                              DataCell(
-                                Text(result.hitName),
-                              ),
-
-                              DataCell(
-                                Text(result.smpte),
-                              ),
-
-                              DataCell(
-                                Text(result.bar.toString()),
-                              ),
-
-                              DataCell(
-                                Text(result.beat.toString()),
-                              ),
-
-                              DataCell(
-                                Text(result.subdivision.toString()),
-                              ),
-                              
-                              DataCell(
-                                Text(
-                                  "${result.frameError >= 0 ? "+" : ""}${result.frameError.toStringAsFixed(2)}",
-                                ),
-                              ),
-
-                              DataCell(
-                                Text(
-                                  "${result.millisecondsError >= 0 ? "+" : ""}${result.millisecondsError.toStringAsFixed(2)}",
-                                ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-                  ],
+                        ];
+                      })(),
+                      const SizedBox(height: 30),
+                    ];       
+                  })(),
                 ],
               ),
             ),
@@ -881,12 +925,6 @@ class _HomePageState extends State<HomePage> {
     
     List<MusicalSegment> segments = buildSegments(cue);
 
-    int baseFrames =
-      smpteToFrames(
-        cue.hitPoints.first.time,
-        fps,
-      );
-
     double bestBpm = cue.bpmMin;
     double bestError = 999999;
 
@@ -1112,6 +1150,8 @@ class _HomePageState extends State<HomePage> {
             hpFrames < s.endFrame,
         );
 
+        int segmentIndex = segments.indexOf(segment);
+
         final position = calculateMusicalPosition(
           segment: segment,
           hpFrame: hpFrames,
@@ -1125,6 +1165,7 @@ class _HomePageState extends State<HomePage> {
             smpte: hp.time,
 
             cueName: cue.name,
+            segmentIndex: segmentIndex,
             bar: position.bar,
             beat: position.beat,
             subdivision: position.subdivision,

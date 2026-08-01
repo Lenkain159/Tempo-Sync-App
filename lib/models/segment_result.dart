@@ -1,9 +1,12 @@
+import 'musical_segment.dart';
+
 class SegmentResult {
 
   final String hitName;
   final String smpte;
 
   final String cueName;
+  final int segmentIndex;
 
   final int bar;
   final int beat;
@@ -17,7 +20,9 @@ class SegmentResult {
   SegmentResult({
     required this.hitName,
     required this.smpte,
+
     required this.cueName,
+    required this.segmentIndex,
 
     required this.bar,
     required this.beat,
