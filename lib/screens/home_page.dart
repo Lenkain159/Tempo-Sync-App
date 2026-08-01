@@ -4,6 +4,9 @@ import '../models/hit_point.dart';
 import '../models/cue.dart';
 import '../models/segment_result.dart';
 import '../models/note_value.dart';
+import '../models/meter_change.dart';
+import '../models/musical_segment.dart';
+import '../models/musical_position.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -412,6 +415,24 @@ class _HomePageState extends State<HomePage> {
     final nameController = TextEditingController(text: hp.name);
     final timeController = TextEditingController(text: hp.time);
 
+    bool hasMeterChange = hp.hasMeterChange;
+      MeterChange meter =
+          hp.meterChange ??
+          MeterChange(
+            beat: cues[cueIndex].beat,
+            subdivision: cues[cueIndex].subdivision,
+            beatsPerBar: cues[cueIndex].beatsPerBar,
+            beforeHit: true,
+          );
+
+      NoteValue selectedMeterBeat = meter.beat;
+
+      NoteValue selectedMeterSubdivision = meter.subdivision;
+
+      int selectedBeatsPerBar = meter.beatsPerBar;
+
+      bool beforeHit = meter.beforeHit;
+
     showDialog(
       context: context,
       builder: (context) {
@@ -438,6 +459,148 @@ class _HomePageState extends State<HomePage> {
                     ),
 
                     const SizedBox(height: 10),
+
+                    //Cambio de métrica
+
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: hasMeterChange,
+                          onChanged: (value) {
+                            setStateDialog(() 
+                              {
+                                hasMeterChange = value!;
+                              }
+                            );
+                          },  
+                        ),
+                        const Text("Cambio de métrica"),
+                      ],
+                    ),
+
+                    if (hasMeterChange)
+                      Column(
+                        children: [
+                          RadioListTile<bool>(
+                            title: const Text("Antes del Hit Point"),
+                            value: true,
+                            groupValue: beforeHit,
+                            onChanged: (value) {
+                              setStateDialog(() {
+                                beforeHit = value!;
+                              });
+                            },
+                          ),
+
+                          RadioListTile<bool>(
+                            title: const Text("Después del Hit Point"),
+                            value: false,
+                            groupValue: beforeHit,
+                            onChanged: (value) {
+                              setStateDialog(() {
+                                beforeHit = value!;
+                              });
+                            },
+                          ),
+
+                          //SELECTOR DE BEAT | BEATS POR COMPÁS
+                          DropdownButtonFormField<NoteValue>(
+                            value: selectedMeterBeat,
+                            decoration: const InputDecoration(
+                              labelText: "Beat",
+                            ),
+                            items: noteValues.map((note) {
+                              return DropdownMenuItem(
+                                value: note,
+                                child: Row(
+                                  children: [
+                                    Image.asset(
+                                      note.image,
+                                      width: 24,
+                                      height: 24,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(note.name),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setStateDialog(() {
+                                selectedMeterBeat = value!;
+
+                                if (selectedMeterSubdivision.value >=
+                                    selectedMeterBeat.value) {
+                                  selectedMeterSubdivision =
+                                      noteValues.firstWhere(
+                                    (note) =>
+                                        note.value < selectedMeterBeat.value,
+                                  );
+                                }
+                              });
+                            },
+                          ),
+
+                          TextField(
+                            decoration: const InputDecoration(
+                              labelText: "Beats por compás",
+                            ),
+                            controller: TextEditingController(
+                              text: selectedBeatsPerBar.toString(),
+                            ),
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              selectedBeatsPerBar =
+                                  int.tryParse(value) ?? 4;
+                            },
+                          ),
+
+                          //SELECTOR DE SUBDIVISIÓN
+                          DropdownButtonFormField<NoteValue>(
+                            value: selectedMeterSubdivision,
+                            decoration: const InputDecoration(
+                              labelText: "Subdivisión",
+                            ),
+                            items: noteValues
+                                .where((note) {
+
+                                  if (selectedMeterBeat.name ==
+                                          "Blanca con puntillo" &&
+                                      note.name ==
+                                          "Negra con puntillo") {
+                                    return false;
+                                  }
+
+                                  return note.value <
+                                      selectedMeterBeat.value;
+
+                                })
+                                .map((note) {
+
+                                  return DropdownMenuItem(
+                                    value: note,
+                                    child: Row(
+                                      children: [
+                                        Image.asset(
+                                          note.image,
+                                          width: 24,
+                                          height: 24,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(note.name),
+                                      ],
+                                    ),
+                                  );
+
+                                }).toList(),
+                            onChanged: (value) {
+                              setStateDialog(() {
+                                selectedMeterSubdivision = value!;
+                              });
+                            },
+                          ),
+                        ],
+                      )
                   ],
                 ),
               );
@@ -455,6 +618,22 @@ class _HomePageState extends State<HomePage> {
                 setState(() {
                   hp.name = nameController.text;
                   hp.time = timeController.text;
+                  hp.hasMeterChange = hasMeterChange;
+
+                  if (hasMeterChange) {
+
+                    hp.meterChange = MeterChange(
+                      beat: selectedMeterBeat,
+                      subdivision: selectedMeterSubdivision,
+                      beatsPerBar: selectedBeatsPerBar,
+                      beforeHit: beforeHit,
+                    );
+
+                  } else {
+
+                    hp.meterChange = null;
+
+                  }
                   sortHitPoints(cues[cueIndex]);
                 });
 
@@ -699,6 +878,8 @@ class _HomePageState extends State<HomePage> {
 
     double fps =
         double.tryParse(fpsController.text) ?? 24.0;
+    
+    List<MusicalSegment> segments = buildSegments(cue);
 
     int baseFrames =
       smpteToFrames(
@@ -718,35 +899,29 @@ class _HomePageState extends State<HomePage> {
 
       double totalError = 0;
 
-      double beatDuration =
-          60 / bpm;
-
       // evaluar TODOS los hitpoints
       for (var hp in cue.hitPoints) {
+        
+        int hpFrame = smpteToFrames(
+          hp.time,
+          fps,
+        );
 
-        int frames =
-            smpteToFrames(hp.time, fps) - baseFrames;
+        MusicalSegment segment = segments.firstWhere(
+          (s) =>
+            hpFrame >= s.startFrame &&
+            hpFrame < s.endFrame,
+        );
 
-        double seconds =
-            frames / fps;
-
-        double totalBeats =
-            1 + (seconds / beatDuration);
-
-        double nearestBeat =
-          totalBeats.roundToDouble();
-
-        double errorBeats =
-          (totalBeats - nearestBeat).abs();
-
-        double errorSeconds =
-          errorBeats *
-          beatDuration;
-
-        double errorFrames =
-            errorSeconds * fps;
-
-        totalError += errorFrames;
+        final position =
+          calculateMusicalPosition(
+            segment: segment,
+            hpFrame: hpFrame,
+            fps: fps,
+            bpm: bpm,
+          );
+        
+        totalError += position.frameError.abs();
       }
 
       // mejor BPM global
@@ -761,6 +936,153 @@ class _HomePageState extends State<HomePage> {
     cue.optimalBpm = bestBpm;
   }
 
+  
+  List<MusicalSegment> buildSegments(Cue cue) {
+
+    if (cue.hitPoints.isEmpty) {
+      return [];
+    } 
+
+    double fps =
+      double.tryParse(fpsController.text) ?? 24;
+
+    List<MusicalSegment> segments = [];
+
+    // Primer segmento
+    segments.add(
+      MusicalSegment(
+        startFrame: smpteToFrames(
+          cue.hitPoints.first.time,
+          fps,
+        ),
+        endFrame: 999999999,
+        beat: cue.beat,
+        subdivision: cue.subdivision,
+        beatsPerBar: cue.beatsPerBar,
+        firstBar: 1,
+        bpm: cue.optimalBpm,
+      ),
+    );
+
+    for (var hp in cue.hitPoints) {
+      if (!hp.hasMeterChange) {
+        continue;
+      }
+      //NUEVO SEGMENTO
+      int hpFrame = smpteToFrames(
+        hp.time,
+        fps,
+      );
+      
+      MeterChange change = hp.meterChange!;
+
+      int startFrame;
+      if (change.beforeHit) {
+        startFrame = hpFrame;
+      } else {
+
+        double beatDuration =
+          60 / cue.optimalBpm;
+
+        double secondsFromSegment =
+          (hpFrame - segments.last.startFrame) / fps;
+
+        double totalBeats =
+          1 + (secondsFromSegment / beatDuration);
+
+        double beatsIntoBar =
+          (totalBeats - 1) %
+          segments.last.beatsPerBar;
+
+        double beatsRemainingInBar =
+          segments.last.beatsPerBar -
+          beatsIntoBar;
+
+        double secondsRemaining =
+          beatsRemainingInBar * beatDuration;
+
+        startFrame = hpFrame + (secondsRemaining * fps).round();
+      }
+
+      segments.last.endFrame = startFrame;
+
+      final position =
+        calculateMusicalPosition(
+          segment: segments.last,
+          hpFrame: startFrame,
+          fps: fps,
+          bpm: cue.optimalBpm,
+        );
+
+      int currentBar = position.bar;
+
+      segments.add(
+        MusicalSegment(
+          startFrame: startFrame,
+          endFrame: 999999999,
+          beat: change.beat,
+          subdivision: change.subdivision,
+          beatsPerBar: change.beatsPerBar,
+          firstBar: change.beforeHit
+              ? currentBar
+              : currentBar + 1,
+          bpm: cue.optimalBpm,
+        )
+      );
+    }
+
+    segments.last.endFrame = 999999999;
+    return segments;
+  }
+  
+  MusicalPosition calculateMusicalPosition({
+    required MusicalSegment segment,
+    required int hpFrame,
+    required double fps,
+    required double bpm,
+  }) {
+
+    double beatDuration = 60 / bpm;
+
+    double seconds = (hpFrame - segment.startFrame) / fps;
+
+    double beatPosition = 1 + (seconds / beatDuration);
+
+    double subdivisionsPerBeat = segment.beat.value / segment.subdivision.value;
+
+    double subdivisionPosition = (beatPosition * subdivisionsPerBeat).roundToDouble() / subdivisionsPerBeat;
+
+    int nearestBeat = subdivisionPosition.floor();
+
+    int bar = ((nearestBeat - 1) ~/ segment.beatsPerBar) + segment.firstBar;
+
+    int beat = ((nearestBeat - 1) % segment.beatsPerBar) + 1;
+
+    double fractional = subdivisionPosition - subdivisionPosition.floor();
+
+    int subdivisionPerBeatInt = subdivisionsPerBeat.round();
+
+    int subdivision = (fractional * subdivisionPerBeatInt).floor() + 1;
+
+    if (subdivision > subdivisionPerBeatInt) {
+      subdivision = 1;
+    }
+
+    double beatOffset = beatPosition - subdivisionPosition;
+
+    double errorSeconds = beatOffset * beatDuration;
+
+    double errorFrames = errorSeconds * fps;
+
+    return MusicalPosition(
+      bar: bar,
+      beat: beat,
+      subdivision: subdivision,
+      frameError: errorFrames,
+      millisecondsError: errorSeconds * 1000,
+    );
+  }
+
   void calculateSegments() {
 
     results.clear();
@@ -769,90 +1091,33 @@ class _HomePageState extends State<HomePage> {
     for (var cue in cues) {
       // calcular BPM global del cue
       calculateCueBpm(cue);
-      double bpm = cue.optimalBpm;
-      double beatDuration =
-          60 / bpm;
+
+      List<MusicalSegment> segments =
+          buildSegments(cue);
+
       for (
         int i = 0;
         i < cue.hitPoints.length;
         i++
       ) 
       {        
-        final firstHit = cue.hitPoints.first;
         final hp = cue.hitPoints[i];
-        
-        int firstFrames =
-            smpteToFrames(firstHit.time, fps);
-
-        double firstSeconds =
-            firstFrames / fps;
 
         int hpFrames =
           smpteToFrames(hp.time, fps);
 
-        double hpSeconds =
-            hpFrames / fps;
+        MusicalSegment segment = segments.firstWhere(
+          (s) =>
+            hpFrames >= s.startFrame &&
+            hpFrames < s.endFrame,
+        );
 
-        double seconds =
-            hpSeconds - firstSeconds;
-
-        // cálculo musical
-        double totalBeats =
-            1 + (seconds / beatDuration);
-
-        double subdivisionsPerBeat =
-          cue.beat.value /
-          cue.subdivision.value;
-
-        double nearestSubdivision =
-          (totalBeats * subdivisionsPerBeat)
-              .roundToDouble() /
-          subdivisionsPerBeat;
-
-        int nearestBeat = nearestSubdivision.floor();
-        
-        int barNumber =
-          ((nearestBeat - 1) ~/ cue.beatsPerBar) + 1;
-
-        int beatInBar =
-          ((nearestBeat - 1) % cue.beatsPerBar) + 1;
-
-        double fractional =
-          nearestSubdivision -
-          nearestSubdivision.floor();
-
-        int subdivisionsPerBeatInt =
-          (cue.beat.value / cue.subdivision.value).round();
-
-        int subdivisionNumber =
-            (fractional * subdivisionsPerBeatInt)
-                .floor() + 1;
-
-        if (subdivisionNumber > subdivisionsPerBeatInt) {
-          subdivisionNumber = 1;
-        }
-
-        //Error
-        double beatOffset =
-          totalBeats - nearestSubdivision;
-
-        double errorSeconds =
-            beatOffset * beatDuration;
-
-        double errorFrames =
-            errorSeconds * fps;
-
-        String status;
-
-        if (errorFrames.abs() <= 3) {
-          status = "OK";
-        }
-        else if (errorFrames.abs() <= 6) {
-          status = "LEVE";
-        }
-        else {
-          status = "FUERA";
-        }
+        final position = calculateMusicalPosition(
+          segment: segment,
+          hpFrame: hpFrames,
+          fps: fps,
+          bpm: cue.optimalBpm,
+        );
 
         results.add(
           SegmentResult(
@@ -860,13 +1125,17 @@ class _HomePageState extends State<HomePage> {
             smpte: hp.time,
 
             cueName: cue.name,
-            bar: barNumber,
-            beat: beatInBar,
-            subdivision: subdivisionNumber,
-            frameError: errorFrames,
-            millisecondsError: errorSeconds * 1000,
+            bar: position.bar,
+            beat: position.beat,
+            subdivision: position.subdivision,
+            frameError: position.frameError,
+            millisecondsError: position.millisecondsError,
 
-            status: status,
+            status: position.frameError.abs() <= 3
+                ? "OK"
+                : position.frameError.abs() <= 6
+                    ? "LEVE"
+                    : "FUERA",
           ),
         );
       }

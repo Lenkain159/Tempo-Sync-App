@@ -1,3 +1,5 @@
+import 'meter_change.dart';
+
 class HitPoint 
 {
   String name;
@@ -9,6 +11,9 @@ class HitPoint
   bool isDialogueStart;
   bool isDialogueEnd;
 
+  bool hasMeterChange;
+  MeterChange? meterChange;
+
   HitPoint
   (
     {
@@ -18,6 +23,7 @@ class HitPoint
     this.subdivision,
     this.isDialogueStart = false,
     this.isDialogueEnd = false,
+    this.hasMeterChange = false,
     }
   );
 }
