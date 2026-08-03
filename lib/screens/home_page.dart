@@ -291,6 +291,31 @@ class _HomePageState extends State<HomePage> {
 
                         return [
 
+                          if (segmentIndex > 0)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: 20,
+                                bottom: 8,
+                              ),
+                              child: Column(
+                                children: [
+
+                                  const Divider(),
+
+                                  Text(
+                                    "Cambio de métrica en compás ${segment.firstBar}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue,
+                                      fontSize: 17,
+                                    ),
+                                  ),
+
+                                  const Divider(),
+                                ],
+                              ),
+                            ),
+
                           Padding(
                             padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
                             child: Row(
@@ -1014,45 +1039,31 @@ class _HomePageState extends State<HomePage> {
       
       MeterChange change = hp.meterChange!;
 
-      int startFrame;
-      if (change.beforeHit) {
-        startFrame = hpFrame;
-      } else {
-
-        double beatDuration =
-          60 / cue.optimalBpm;
-
-        double secondsFromSegment =
-          (hpFrame - segments.last.startFrame) / fps;
-
-        double totalBeats =
-          1 + (secondsFromSegment / beatDuration);
-
-        double beatsIntoBar =
-          (totalBeats - 1) %
-          segments.last.beatsPerBar;
-
-        double beatsRemainingInBar =
-          segments.last.beatsPerBar -
-          beatsIntoBar;
-
-        double secondsRemaining =
-          beatsRemainingInBar * beatDuration;
-
-        startFrame = hpFrame + (secondsRemaining * fps).round();
-      }
-
-      segments.last.endFrame = startFrame;
-
       final position =
         calculateMusicalPosition(
           segment: segments.last,
-          hpFrame: startFrame,
+          hpFrame: hpFrame,
           fps: fps,
           bpm: cue.optimalBpm,
         );
 
-      int currentBar = position.bar;
+      int firstBarOfNewSegment;
+
+      if (change.beforeHit) {
+        firstBarOfNewSegment = position.bar - 1;
+      } else {
+
+        firstBarOfNewSegment = position.bar + 1;
+      }
+      
+      int startFrame =
+        getBarStartFrame(
+          segment: segments.last,
+          bar: firstBarOfNewSegment,
+          fps: fps,
+        );
+
+      segments.last.endFrame = startFrame;
 
       segments.add(
         MusicalSegment(
@@ -1061,9 +1072,7 @@ class _HomePageState extends State<HomePage> {
           beat: change.beat,
           subdivision: change.subdivision,
           beatsPerBar: change.beatsPerBar,
-          firstBar: change.beforeHit
-              ? currentBar
-              : currentBar + 1,
+          firstBar: firstBarOfNewSegment,
           bpm: cue.optimalBpm,
         )
       );
@@ -1120,6 +1129,26 @@ class _HomePageState extends State<HomePage> {
       millisecondsError: errorSeconds * 1000,
     );
   }
+
+  int getBarStartFrame({
+    required MusicalSegment segment,
+    required int bar,
+    required double fps,
+  }) {
+
+    double beatDuration =
+        60 / segment.bpm;
+
+    int beatsFromSegmentStart =
+        (bar - segment.firstBar) * segment.beatsPerBar;
+
+    double seconds = 
+        beatsFromSegmentStart * beatDuration;   
+
+    return segment.startFrame +
+        (seconds * fps).round();
+  }
+
 
   void calculateSegments() {
 
