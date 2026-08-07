@@ -8,6 +8,18 @@ class NoteValue {
     required this.value,
     required this.image,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      "name": name,
+    };
+  }
+
+  static NoteValue fromJson(Map<String, dynamic> json) {
+    return noteValues.firstWhere(
+      (note) => note.name == json["name"],
+    );
+  }
 }
 
 const noteValues = [
@@ -54,3 +66,28 @@ const noteValues = [
     image: "assets/notes/sixteenth.png",
   ),
 ];
+
+List<NoteValue> getAvailableSubdivisions(NoteValue beat) {
+  return noteValues.where((note) {
+
+    // Debe ser una figura menor
+    if (note.value >= beat.value) {
+      return false;
+    }
+
+    // Excepción musical
+    if (beat.name == "Blanca con puntillo" &&
+        note.name == "Negra con puntillo") {
+      return false;
+    }
+
+    // Excepción musical
+    if (beat.name == "Negra con puntillo" &&
+        note.name == "Negra") {
+      return false;
+    }
+
+    return true;
+
+  }).toList();
+}

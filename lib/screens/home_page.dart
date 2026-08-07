@@ -7,6 +7,10 @@ import '../models/note_value.dart';
 import '../models/meter_change.dart';
 import '../models/musical_segment.dart';
 import '../models/musical_position.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import '../models/tempo_project.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -40,6 +44,12 @@ class _HomePageState extends State<HomePage> {
     NoteValue beat,
     NoteValue subdivision,
   ) {
+
+    // Caso especial
+    if (beat.name == "Semicorchea") {
+      return subdivision.name == "Semicorchea";
+    }
+
     if (subdivision.value >= beat.value) {
       return false;
     }
@@ -54,6 +64,24 @@ class _HomePageState extends State<HomePage> {
     double ratio = beat.value / subdivision.value;
 
     return (ratio - ratio.round()).abs() < 0.0001;
+  }
+
+  String getMeterText(
+  int beatsPerBar,
+  NoteValue beat,
+  ) {
+
+    switch (beat.name) {
+
+      case "Blanca con puntillo":
+        return "${beatsPerBar * 3}/4";
+
+      case "Negra con puntillo":
+        return "${beatsPerBar * 3}/8";
+
+      default:
+        return "$beatsPerBar/${(1 / beat.value).round()}";
+    }
   }
 
   List<SegmentResult> results = [];
@@ -71,6 +99,31 @@ class _HomePageState extends State<HomePage> {
               flex: 2,
               child: Column(
                 children: [
+                  Row(
+                    children: [
+
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: loadProject,
+                          icon: const Icon(Icons.folder_open),
+                          label: const Text("Abrir"),
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: saveProject,
+                          icon: const Icon(Icons.save),
+                          label: const Text("Guardar"),
+                        ),
+                      ),
+
+                    ],
+                  ),
+
+                  const SizedBox(height: 15),
                   // INPUTS
                   TextField(
                     controller: fpsController,
@@ -339,7 +392,7 @@ class _HomePageState extends State<HomePage> {
                                 const SizedBox(width: 20),
 
                                 Text(
-                                  "${segment.beatsPerBar}/${(1 / segment.beat.value).round()}",
+                                  getMeterText(segment.beatsPerBar, segment.beat),
                                   style: const TextStyle(
                                     fontSize: 18,
                                   ),
@@ -498,6 +551,19 @@ class _HomePageState extends State<HomePage> {
 
       NoteValue selectedMeterSubdivision = meter.subdivision;
 
+      if (!isValidSubdivision(
+          selectedMeterBeat,
+          selectedMeterSubdivision,
+      )) {
+        selectedMeterSubdivision =
+            noteValues.firstWhere(
+          (note) => isValidSubdivision(
+            selectedMeterBeat,
+            note,
+          ),
+        );
+      }
+
       int selectedBeatsPerBar = meter.beatsPerBar;
 
       bool beforeHit = meter.beforeHit;
@@ -598,12 +664,16 @@ class _HomePageState extends State<HomePage> {
                               setStateDialog(() {
                                 selectedMeterBeat = value!;
 
-                                if (selectedMeterSubdivision.value >=
-                                    selectedMeterBeat.value) {
+                                if (!isValidSubdivision(
+                                    selectedMeterBeat,
+                                    selectedMeterSubdivision,
+                                )) {
                                   selectedMeterSubdivision =
                                       noteValues.firstWhere(
-                                    (note) =>
-                                        note.value < selectedMeterBeat.value,
+                                    (note) => isValidSubdivision(
+                                      selectedMeterBeat,
+                                      note,
+                                    ),
                                   );
                                 }
                               });
@@ -630,20 +700,9 @@ class _HomePageState extends State<HomePage> {
                             decoration: const InputDecoration(
                               labelText: "Subdivisión",
                             ),
+
                             items: noteValues
-                                .where((note) {
-
-                                  if (selectedMeterBeat.name ==
-                                          "Blanca con puntillo" &&
-                                      note.name ==
-                                          "Negra con puntillo") {
-                                    return false;
-                                  }
-
-                                  return note.value <
-                                      selectedMeterBeat.value;
-
-                                })
+                              .where((note) => isValidSubdivision(selectedMeterBeat, note))
                                 .map((note) {
 
                                   return DropdownMenuItem(
@@ -1212,6 +1271,72 @@ class _HomePageState extends State<HomePage> {
     }
 
     setState(() {});
+  }
+
+  Future<void> saveProject() async {
+
+    final String? path =
+        await FilePicker.platform.saveFile(
+      dialogTitle: "Guardar proyecto",
+      fileName: "Proyecto.tsync",
+    );
+
+    if (path == null) {
+      return;
+    }
+
+    String finalPath = path;
+
+    if (!finalPath.toLowerCase().endsWith(".tsync")) {
+      finalPath += ".tsync";
+    }
+
+    final project = TempoProject(
+      fps: double.tryParse(
+            fpsController.text,
+          ) ??
+          24,
+      cues: cues,
+    );
+
+    final jsonText = const JsonEncoder.withIndent("  ")
+        .convert(project.toJson());
+
+    await File(finalPath).writeAsString(jsonText);
+  }
+
+  Future<void> loadProject() async {
+
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ["tsync"],
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    final file = File(result.files.single.path!);
+
+    final jsonString =
+        await file.readAsString();
+
+    final project = TempoProject.fromJson(
+      jsonDecode(jsonString),
+    );
+
+    setState(() {
+
+      fpsController.text =
+          project.fps.toString();
+
+      cues = project.cues;
+
+    });
+
+    calculateSegments();
+
   }
 }
 

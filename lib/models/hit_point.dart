@@ -24,6 +24,34 @@ class HitPoint
     this.isDialogueStart = false,
     this.isDialogueEnd = false,
     this.hasMeterChange = false,
+    this.meterChange,
     }
   );
+
+  Map<String, dynamic> toJson() {
+    return {
+      "name": name,
+      "time": time,
+      "hasMeterChange": hasMeterChange,
+      "meterChange":
+          meterChange?.toJson(),
+    };
+  }
+
+  static HitPoint fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return HitPoint(
+      name: json["name"],
+      time: json["time"],
+      hasMeterChange:
+          json["hasMeterChange"] ?? false,
+      meterChange:
+          json["meterChange"] != null
+              ? MeterChange.fromJson(
+                  json["meterChange"],
+                )
+              : null,
+    );
+  }
 }
