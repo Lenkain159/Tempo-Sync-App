@@ -11,6 +11,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import '../models/tempo_project.dart';
+import '../theme/app_theme.dart';
+import '../main.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -84,12 +86,60 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Color? noteImageColor(BuildContext context) {
+
+    switch (currentTheme.value) {
+
+      case TempoTheme.light:
+        return null;
+
+      case TempoTheme.dark:
+        return Colors.white;
+
+      case TempoTheme.highContrast:
+        return Colors.yellow;
+
+    }
+  }
   List<SegmentResult> results = [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tempo Sync Tool')),
+      appBar: AppBar(title: const Text('ScoreTempo'),
+
+        actions: [
+
+        PopupMenuButton<TempoTheme>(
+
+          icon: const Icon(Icons.settings),
+
+          onSelected: (theme) {
+            currentTheme.value = theme;
+          },
+
+          itemBuilder: (context) => [
+
+            const PopupMenuItem(
+              value: TempoTheme.light,
+              child: Text("Modo claro"),
+            ),
+
+            const PopupMenuItem(
+              value: TempoTheme.dark,
+              child: Text("Modo oscuro"),
+            ),
+
+            const PopupMenuItem(
+              value: TempoTheme.highContrast,
+              child: Text("Alto contraste"),
+            ),
+
+          ],
+        ),
+
+      ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -323,6 +373,8 @@ class _HomePageState extends State<HomePage> {
                               cue.beat.image,
                               width: 32,
                               height: 32,
+                              color: noteImageColor(context),
+                              colorBlendMode: BlendMode.srcIn,
                             ),
 
                             const SizedBox(width: 8),
@@ -377,6 +429,8 @@ class _HomePageState extends State<HomePage> {
                                 Image.asset(
                                   segment.beat.image,
                                   width: 26,
+                                  color: noteImageColor(context),
+                                  colorBlendMode: BlendMode.srcIn,
                                 ),
 
                                 const SizedBox(width: 8),
@@ -427,6 +481,8 @@ class _HomePageState extends State<HomePage> {
                                       Image.asset(
                                         segment.beat.image,
                                         width: 22,
+                                        color: noteImageColor(context),
+                                        colorBlendMode: BlendMode.srcIn,
                                       ),
                                       Text(segment.beat.name),
                                     ],
@@ -440,6 +496,8 @@ class _HomePageState extends State<HomePage> {
                                       Image.asset(
                                         segment.subdivision.image,
                                         width: 22,
+                                        color: noteImageColor(context),
+                                        colorBlendMode: BlendMode.srcIn,
                                       ),
                                       Text(segment.subdivision.name),
                                     ],
@@ -475,41 +533,50 @@ class _HomePageState extends State<HomePage> {
                                     rowColor = Colors.red.shade100;
                                 }
 
+                                const resultTextStyle = TextStyle(
+                                    color: Colors.black,
+                                  );
+
                                 return DataRow(
                                   color: WidgetStatePropertyAll(rowColor),
 
                                   cells: [
 
                                     DataCell(
-                                      Text(result.hitName),
+                                      Text(result.hitName,
+                                      style: resultTextStyle)
                                     ),
 
                                     DataCell(
-                                      Text(result.smpte),
+                                      Text(result.smpte,
+                                      style: resultTextStyle)
                                     ),
 
                                     DataCell(
-                                      Text(result.bar.toString()),
+                                      Text(result.bar.toString(),
+                                      style: resultTextStyle)
                                     ),
 
                                     DataCell(
-                                      Text(result.beat.toString()),
+                                      Text(result.beat.toString(),
+                                      style: resultTextStyle)
                                     ),
 
                                     DataCell(
-                                      Text(result.subdivision.toString()),
+                                      Text(result.subdivision.toString(),
+                                      style: resultTextStyle)
                                     ),
                                     
                                     DataCell(
                                       Text(
                                         "${result.frameError >= 0 ? "+" : ""}${result.frameError.toStringAsFixed(2)}",
-                                      ),
+                                      style: resultTextStyle)
                                     ),
-
+                                
                                     DataCell(
                                       Text(
                                         "${result.millisecondsError >= 0 ? "+" : ""}${result.millisecondsError.toStringAsFixed(2)}",
-                                      ),
+                                      style: resultTextStyle)
                                     ),
                                   ],
                                 );
@@ -653,6 +720,8 @@ class _HomePageState extends State<HomePage> {
                                       note.image,
                                       width: 24,
                                       height: 24,
+                                      color: noteImageColor(context),
+                                      colorBlendMode: BlendMode.srcIn,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(note.name),
@@ -713,6 +782,8 @@ class _HomePageState extends State<HomePage> {
                                           note.image,
                                           width: 24,
                                           height: 24,
+                                          color: noteImageColor(context),
+                                          colorBlendMode: BlendMode.srcIn,
                                         ),
                                         const SizedBox(width: 8),
                                         Text(note.name),
@@ -868,6 +939,8 @@ class _HomePageState extends State<HomePage> {
                                 note.image,
                                 width: 22,
                                 height: 22,
+                                color: noteImageColor(context),
+                                colorBlendMode: BlendMode.srcIn,
                               ),
                               const SizedBox(width: 10),
                               Text(note.name),
@@ -940,6 +1013,8 @@ class _HomePageState extends State<HomePage> {
                                   note.image,
                                   width: 22,
                                   height: 22,
+                                  color: noteImageColor(context),
+                                  colorBlendMode: BlendMode.srcIn,
                                 ),
                                 const SizedBox(width: 10),
                                 Text(note.name),
