@@ -371,9 +371,10 @@ class _HomePageState extends State<HomePage> {
 
                             Image.asset(
                               cue.beat.image,
-                              width: 32,
-                              height: 32,
-                              filterQuality: FilterQuality.high,
+                              width: 64,
+                              height: 64,
+                              color: noteImageColor(context),
+                              colorBlendMode: BlendMode.srcIn,
                             ),
 
                             const SizedBox(width: 8),
