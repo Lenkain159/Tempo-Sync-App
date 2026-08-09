@@ -14,6 +14,8 @@ import '../models/tempo_project.dart';
 import '../theme/app_theme.dart';
 import '../main.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../services/project_storage.dart';
+import '../services/storage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -103,6 +105,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
   List<SegmentResult> results = [];
+
+  final ProjectStorage storage = createStorage();
 
   @override
   Widget build(BuildContext context) {
@@ -1367,56 +1371,26 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> saveProject() async {
 
-    final String? path =
-        await FilePicker.platform.saveFile(
-      dialogTitle: "Guardar proyecto",
-      fileName: "Proyecto.tsync",
-    );
-
-    if (path == null) {
-      return;
-    }
-
-    String finalPath = path;
-
-    if (!finalPath.toLowerCase().endsWith(".tsync")) {
-      finalPath += ".tsync";
-    }
-
     final project = TempoProject(
-      fps: double.tryParse(
+      fps:
+          double.tryParse(
             fpsController.text,
           ) ??
           24,
       cues: cues,
     );
 
-    final jsonText = const JsonEncoder.withIndent("  ")
-        .convert(project.toJson());
-
-    await File(finalPath).writeAsString(jsonText);
+    await storage.save(project);
   }
 
   Future<void> loadProject() async {
 
-    FilePickerResult? result =
-        await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ["tsync"],
-    );
+    final project =
+        await storage.load();
 
-    if (result == null) {
+    if (project == null) {
       return;
     }
-
-    final file = File(result.files.single.path!);
-
-    final jsonString =
-        await file.readAsString();
-
-    final project = TempoProject.fromJson(
-      jsonDecode(jsonString),
-    );
 
     setState(() {
 
@@ -1428,7 +1402,6 @@ class _HomePageState extends State<HomePage> {
     });
 
     calculateSegments();
-
   }
 }
 
