@@ -1,5 +1,3 @@
-import 'musical_segment.dart';
-
 class SegmentResult {
 
   final String hitName;
