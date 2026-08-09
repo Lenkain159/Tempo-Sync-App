@@ -97,7 +97,7 @@ class _HomePageState extends State<HomePage> {
         return Colors.white;
 
       case TempoTheme.highContrast:
-        return Colors.yellow;
+        return Colors.white;
 
     }
   }
