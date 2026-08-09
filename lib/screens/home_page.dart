@@ -373,7 +373,7 @@ class _HomePageState extends State<HomePage> {
                               cue.beat.image,
                               width: 32,
                               height: 32,
-                        
+                              filterQuality: FilterQuality.high,
                             ),
 
                             const SizedBox(width: 8),
