@@ -13,6 +13,7 @@ import 'package:file_picker/file_picker.dart';
 import '../models/tempo_project.dart';
 import '../theme/app_theme.dart';
 import '../main.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -91,7 +92,7 @@ class _HomePageState extends State<HomePage> {
     switch (currentTheme.value) {
 
       case TempoTheme.light:
-        return null;
+        return Colors.black;
 
       case TempoTheme.dark:
         return Colors.white;
@@ -369,12 +370,14 @@ class _HomePageState extends State<HomePage> {
 
                             const SizedBox(width: 20),
 
-                            Image.asset(
+                            SvgPicture.asset(
                               cue.beat.image,
-                              width: 64,
-                              height: 64,
-                              color: noteImageColor(context),
-                              colorBlendMode: BlendMode.srcIn,
+                              width: 32,
+                              height: 32,
+                              colorFilter: ColorFilter.mode(
+                                noteImageColor(context) ?? Colors.black,
+                                BlendMode.srcIn,
+                              ),
                             ),
 
                             const SizedBox(width: 8),
@@ -426,11 +429,13 @@ class _HomePageState extends State<HomePage> {
                             child: Row(
                               children: [
 
-                                Image.asset(
+                                SvgPicture.asset(
                                   segment.beat.image,
                                   width: 26,
-                                  color: noteImageColor(context),
-                                  colorBlendMode: BlendMode.srcIn,
+                                  colorFilter: ColorFilter.mode(
+                                    noteImageColor(context) ?? Colors.black,
+                                    BlendMode.srcIn,
+                                  ),
                                 ),
 
                                 const SizedBox(width: 8),
@@ -478,11 +483,13 @@ class _HomePageState extends State<HomePage> {
                                   label: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Image.asset(
+                                      SvgPicture.asset(
                                         segment.beat.image,
                                         width: 22,
-                                        color: noteImageColor(context),
-                                        colorBlendMode: BlendMode.srcIn,
+                                        colorFilter: ColorFilter.mode(
+                                          noteImageColor(context) ?? Colors.black,
+                                          BlendMode.srcIn,
+                                        ),
                                       ),
                                       Text(segment.beat.name),
                                     ],
@@ -493,11 +500,13 @@ class _HomePageState extends State<HomePage> {
                                   label: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Image.asset(
+                                      SvgPicture.asset(
                                         segment.subdivision.image,
                                         width: 22,
-                                        color: noteImageColor(context),
-                                        colorBlendMode: BlendMode.srcIn,
+                                        colorFilter: ColorFilter.mode(
+                                          noteImageColor(context) ?? Colors.black,
+                                          BlendMode.srcIn,
+                                        ),
                                       ),
                                       Text(segment.subdivision.name),
                                     ],
@@ -716,12 +725,14 @@ class _HomePageState extends State<HomePage> {
                                 value: note,
                                 child: Row(
                                   children: [
-                                    Image.asset(
+                                    SvgPicture.asset(
                                       note.image,
                                       width: 24,
                                       height: 24,
-                                      color: noteImageColor(context),
-                                      colorBlendMode: BlendMode.srcIn,
+                                      colorFilter: ColorFilter.mode(
+                                        noteImageColor(context) ?? Colors.black,
+                                        BlendMode.srcIn,
+                                      ),
                                     ),
                                     const SizedBox(width: 8),
                                     Text(note.name),
@@ -778,12 +789,14 @@ class _HomePageState extends State<HomePage> {
                                     value: note,
                                     child: Row(
                                       children: [
-                                        Image.asset(
+                                        SvgPicture.asset(
                                           note.image,
                                           width: 24,
                                           height: 24,
-                                          color: noteImageColor(context),
-                                          colorBlendMode: BlendMode.srcIn,
+                                          colorFilter: ColorFilter.mode(
+                                            noteImageColor(context) ?? Colors.black,
+                                            BlendMode.srcIn,
+                                          ),
                                         ),
                                         const SizedBox(width: 8),
                                         Text(note.name),
@@ -935,12 +948,14 @@ class _HomePageState extends State<HomePage> {
                           value: note,
                           child: Row(
                             children: [
-                              Image.asset(
+                              SvgPicture.asset(
                                 note.image,
                                 width: 22,
                                 height: 22,
-                                color: noteImageColor(context),
-                                colorBlendMode: BlendMode.srcIn,
+                                colorFilter: ColorFilter.mode(
+                                  noteImageColor(context) ?? Colors.black,
+                                  BlendMode.srcIn,
+                                ),
                               ),
                               const SizedBox(width: 10),
                               Text(note.name),
@@ -1009,12 +1024,14 @@ class _HomePageState extends State<HomePage> {
                             value: note,
                             child: Row(
                               children: [
-                                Image.asset(
+                                SvgPicture.asset(
                                   note.image,
                                   width: 22,
                                   height: 22,
-                                  color: noteImageColor(context),
-                                  colorBlendMode: BlendMode.srcIn,
+                                  colorFilter: ColorFilter.mode(
+                                    noteImageColor(context) ?? Colors.black,
+                                    BlendMode.srcIn,
+                                  ),
                                 ),
                                 const SizedBox(width: 10),
                                 Text(note.name),

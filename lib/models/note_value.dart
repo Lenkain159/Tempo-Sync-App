@@ -27,43 +27,43 @@ const noteValues = [
   NoteValue(
     name: "Redonda",
     value: 1,
-    image: "assets/notes/whole.png",
+    image: "assets/notes/whole.svg",
   ),
 
   NoteValue(
     name: "Blanca con puntillo",
     value: 0.75,
-    image: "assets/notes/dotted_half.png",
+    image: "assets/notes/dotted_half.svg",
   ),
 
   NoteValue(
     name: "Blanca",
     value: 0.5,
-    image: "assets/notes/half.png",
+    image: "assets/notes/half.svg",
   ),
 
   NoteValue(
     name: "Negra con puntillo",
     value: 0.375,
-    image: "assets/notes/dotted_quarter.png",
+    image: "assets/notes/dotted_quarter.svg",
   ),
   
   NoteValue(
     name: "Negra",
     value: 0.25,
-    image: "assets/notes/quarter.png",
+    image: "assets/notes/quarter.svg",
   ),
 
   NoteValue(
     name: "Corchea",
     value: 0.125,
-    image: "assets/notes/eighth.png",
+    image: "assets/notes/eighth.svg",
   ),
 
   NoteValue(
     name: "Semicorchea",
     value: 0.0625,
-    image: "assets/notes/sixteenth.png",
+    image: "assets/notes/sixteenth.svg",
   ),
 ];
 
