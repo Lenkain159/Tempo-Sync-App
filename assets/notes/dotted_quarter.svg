@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 1000 1000" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,0,-2100)">
+        <rect id="quarterdotted" x="0" y="2100" width="1000" height="1000" style="fill:none;"/>
+        <g id="quarterdotted1" serif:id="quarterdotted">
+            <g transform="matrix(21.014864,0,0,21.014864,-8055.031897,-9954.925606)">
+                <g transform="matrix(-0.999976,-0.006907,0.006907,-0.999976,533.707312,992.471975)">
+                    <path d="M135.535,382.552C131.439,384.908 130.588,383.118 129.529,384.534C128.985,385.262 129.523,413.383 129.209,414.41C129.174,414.524 128.511,415.325 128.446,415.344C127.223,415.697 127.042,413.764 127.025,413.584C126.985,413.155 126.855,385.872 126.997,384.494C127.615,378.465 127.547,376.714 131.269,374.141C134.687,371.778 139.959,372.716 139.324,377.473C139.102,379.137 137.9,380.468 137.707,380.682C136.409,382.119 136.076,382.142 135.535,382.552Z" style="fill:rgb(1,1,1);"/>
+                </g>
+                <g transform="matrix(1.392571,0,0,1.392571,-160.232999,-240.787533)">
+                    <circle cx="412.018" cy="612.993" r="1.222"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
