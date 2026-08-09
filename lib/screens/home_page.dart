@@ -24,6 +24,22 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final fpsController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+
+    currentTheme.addListener(_themeChanged);
+  }
+
+  void _themeChanged() {
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    currentTheme.removeListener(_themeChanged);
+    super.dispose();
+  }
   List<Cue> cues = [];
 
   void addCue() {
@@ -101,6 +117,7 @@ class _HomePageState extends State<HomePage> {
 
     }
   }
+
   List<SegmentResult> results = [];
 
   final ProjectStorage storage = createStorage();
