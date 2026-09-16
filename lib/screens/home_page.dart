@@ -14,7 +14,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../services/project_storage.dart';
 import '../services/storage.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:flutter/services.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -175,7 +174,7 @@ class _HomePageState extends State<HomePage> {
               context: context,
               builder: (context) {
                 return AlertDialog(
-                  title: const Text("¿Cómo usar Tempo Sync?"),
+                  title: const Text("¿Cómo usar ScoreTempo?"),
                   content: SizedBox(
                     width: 800,
                     height: 600,
