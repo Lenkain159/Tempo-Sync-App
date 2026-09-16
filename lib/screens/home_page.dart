@@ -13,6 +13,8 @@ import '../main.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/project_storage.dart';
 import '../services/storage.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter/services.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -155,6 +157,38 @@ class _HomePageState extends State<HomePage> {
             ),
 
           ],
+        ),
+
+        const SizedBox(height: 8),
+
+        IconButton(
+          icon: const Icon(Icons.help_outline),
+          tooltip: "¿Cómo usar ScoreTempo?",
+          onPressed: () async {
+            final manualHtml = await rootBundle.loadString(
+              'assets/help/manual.html',
+            );
+
+            if (!context.mounted) return;
+
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: const Text("¿Cómo usar Tempo Sync?"),
+                  content: SizedBox(
+                    width: 800,
+                    height: 600,
+                    child: SingleChildScrollView(
+                      child: Html(
+                        data: manualHtml,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         ),
 
       ],

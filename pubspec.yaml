@@ -39,6 +39,7 @@ dependencies:
   cross_file: ^0.3.4+2
   universal_html: ^2.2.4
   file_saver: ^0.3.1
+  flutter_html: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -95,3 +96,5 @@ flutter:
   
   assets:
     - assets/notes/
+    - assets/help/
+    - assets/help/images/
